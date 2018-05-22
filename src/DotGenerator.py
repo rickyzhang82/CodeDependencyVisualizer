@@ -1,6 +1,9 @@
 import hashlib
-import logging
-
+import sys
+if 2 == sys.version_info[0]:
+    text = unicode
+else:
+    text = str
 
 class UmlClass:
     def __init__(self):
@@ -17,7 +20,7 @@ class UmlClass:
         self.parents.append(fullyQualifiedClassName)
 
     def getId(self):
-        return "id" + str(hashlib.md5(self.fqn).hexdigest())
+        return "id" + text(hashlib.md5(text(self.fqn).encode('utf-8')).hexdigest())
 
 
 class DotGenerator:
@@ -30,15 +33,22 @@ class DotGenerator:
     def __init__(self):
         self.classes = {}
 
+    def hasClass(self, aClass):
+        return self.classes.get(aClass) is not None
+
     def addClass(self, aClass):
         self.classes[aClass.fqn] = aClass
 
     def _genFields(self, accessPrefix, fields):
-        ret = "".join([(accessPrefix + fieldName + ": " + fieldType + "\l") for fieldName, fieldType in fields])
+        # sort by fieldName
+        sorted_fields = sorted(fields, key=lambda x: x[0])
+        ret = "".join([(accessPrefix + fieldName + ": " + fieldTypes[0] + "\l") for fieldName, fieldTypes in sorted_fields])
         return ret
 
     def _genMethods(self, accessPrefix, methods):
-        return "".join([(accessPrefix + methodName + methodArgs + " : " + returnType + "\l") for (returnType, methodName, methodArgs) in methods])
+        # sort by methodName
+        sorted_methods = sorted(methods, key=lambda x: x[1])
+        return "".join([(accessPrefix + methodName + methodArgs + " : " + returnType + "\l") for (returnType, methodName, methodArgs) in sorted_methods])
 
     def _genClass(self, aClass, withPublicMembers=False, withProtectedMembers=False, withPrivateMembers=False):
         c = (aClass.getId()+" [ \n" +
@@ -72,14 +82,16 @@ class DotGenerator:
 
     def _genAssociations(self, aClass):
         edges = set()
-        for fieldName, fieldType in aClass.privateFields:
-            if fieldType in self.classes:
-                c = self.classes[fieldType]
-                edges.add(aClass.getId() + "->" + c.getId())
-        for fieldName, fieldType in aClass.publicFields:
-            if fieldType in self.classes:
-                c = self.classes[fieldType]
-                edges.add(aClass.getId() + "->" + c.getId())
+        for fieldName, fieldTypes in aClass.privateFields:
+            for fieldType in fieldTypes:
+                if fieldType in self.classes:
+                    c = self.classes[fieldType]
+                    edges.add(aClass.getId() + "->" + c.getId())
+        for fieldName, fieldTypes in aClass.publicFields:
+            for fieldType in fieldTypes:
+                if fieldType in self.classes:
+                    c = self.classes[fieldType]
+                    edges.add(aClass.getId() + "->" + c.getId())
         edgesJoined = "\n".join(edges)
         return edgesJoined+"\n" if edgesJoined != "" else ""
 
@@ -121,13 +133,13 @@ class DotGenerator:
                       "  ]\n"
                       )
 
-        for key, value in self.classes.iteritems():
+        for key, value in self.classes.items():
             dotContent += self._genClass(value, self._showPubMembers, self._showProtMembers, self._showPrivMembers)
 
         # associations
         if self._drawAssociations:
             associations = ""
-            for key, aClass in self.classes.iteritems():
+            for key, aClass in self.classes.items():
                 associations += self._genAssociations(aClass)
 
             if associations != "":
@@ -137,7 +149,7 @@ class DotGenerator:
         # inheritances
         if self._drawInheritances:
             inheritances = ""
-            for key, aClass in self.classes.iteritems():
+            for key, aClass in self.classes.items():
                 inheritances += self._genInheritances(aClass)
 
             if inheritances != "":

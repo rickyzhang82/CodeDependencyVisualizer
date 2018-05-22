@@ -7,11 +7,12 @@ You might also take a look at my blogpost: http://gernotklingler.com/blog/libcla
 
 Dependencies
 ------------
-- python 2.7
-- clang version 3.5
+- python 2.7 and 3.6
+- clang version 3.5+
 - graphvitz (for the dot tool) to be able to transform the generated dot file to an image
+- ccsyspath
 
-Just tested on Linux.
+Just tested on Linux and Mac OS X.
 
 Usage
 -----
@@ -42,9 +43,9 @@ optional arguments:
                         additional search path(s) for include files (seperated
                         by space)
   -v, --verbose         print verbose information for debugging purposes
-  --exclude_classes EXCLUDE_CLASSES
+  --excludeClasses EXCLUDE_CLASSES
                         classes matching this pattern will be excluded
-  --include_classes INCLUDE_CLASSES
+  --includeClasses INCLUDE_CLASSES
                         only classes matching this pattern will be included
 ```
 
