@@ -72,7 +72,9 @@ def processClassMemberDeclaration(umlClass, cursor):
                 umlClass.privateFields.append((name, types))
             elif cursor.access_specifier == clang.cindex.AccessSpecifier.PROTECTED:
                 umlClass.protectedFields.append((name, types))
-    elif cursor.kind == clang.cindex.CursorKind.CXX_METHOD:
+    elif cursor.kind == clang.cindex.CursorKind.CXX_METHOD or\
+            cursor.kind == clang.cindex.CursorKind.CONSTRUCTOR or\
+            cursor.kind == clang.cindex.CursorKind.DESTRUCTOR:
         try:
             returnType, argumentTypes = cursor.type.spelling.split(' ', 1)
             if cursor.access_specifier == clang.cindex.AccessSpecifier.PUBLIC:
